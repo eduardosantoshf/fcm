@@ -90,7 +90,7 @@ def get_table_row(seq, alphabet, table):
 
 def main():
     filename = sys.argv[1]
-    k = 1 if len(sys.argv) < 2 else int(sys.argv[2])
+    k = 1 if len(sys.argv) < 3 else int(sys.argv[2])
     alphabet = get_alphabet(filename)
     fill_table(init_table(alphabet, k), alphabet, k, filename)
 
