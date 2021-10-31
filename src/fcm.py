@@ -1,4 +1,5 @@
 import sys
+import math
 
 times = {}
 
@@ -88,11 +89,72 @@ def get_table_row(seq, alphabet, table):
             
             #return [0 for _ in range(len(alphabet))]
 
+def calculate_each_probability(row):
+    prob_list = []
+    #alpha = 0.1
+    for x in row:
+        total = 0
+        for k in row:
+            total += row[k]
+        
+        #prob_list.append((row[x] + alpha) / (total + (abs(total) * alpha)))
+        prob_list.append(row[x] / total)
+
+    return prob_list
+
+def calculate_each_entropy(prob_list):
+    entropy = 0.0
+
+    for x in prob_list:
+        entropy += x * math.log2(x)
+
+    return - entropy
+
+def calculate_global_entropy(filled_table):
+
+    final_entropy = 0.0
+
+    total_counter = 0
+
+    for k in filled_table:
+        for j in filled_table[k]:
+            total_counter += filled_table[k][j]
+
+
+    for x in filled_table:
+        probs = calculate_each_probability(filled_table[x])
+        entropy_row = calculate_each_entropy(probs)
+        #print(str(x) + " -> " + str(filled_table[x]) + str(probs))
+        #print(str(x) + str(filled_table[x]) + str(probs) + str(entropy_row))
+        final_entropy += sum(probs)/total_counter * entropy_row
+        #print(sum(probs)/len(probs) * entropy_row)
+
+    #print(final_entropy)
+
+    return final_entropy
+
+
+
+
+
+
 def main():
     filename = sys.argv[1]
     k = 1 if len(sys.argv) < 3 else int(sys.argv[2])
     alphabet = get_alphabet(filename)
-    fill_table(init_table(alphabet, k), alphabet, k, filename)
+    filled_table = fill_table(init_table(alphabet, k), alphabet, k, filename)
+        
+    #print("w h -> " + str(filled_table['w h']))
+    probs = calculate_each_probability(filled_table['w h'])
+    #print(probs)
+    entropy_row = calculate_each_entropy(probs)
+
+    print(calculate_global_entropy(filled_table))
+
+    #print(entropy_row)
+
+    
+
 
 
 if __name__== "__main__":
