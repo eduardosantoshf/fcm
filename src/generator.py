@@ -18,7 +18,7 @@ def main():
     for i in range(size):
         row = get_table_row(seq, alphabet, table)
         total = sum(row) + len(alphabet) * alpha
-        r = random.random() * (total - 1)
+        r = random.random() * (total)
         for i, v in enumerate(row):
             r -= v + alpha
             if r <= 0:
