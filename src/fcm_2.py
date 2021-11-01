@@ -108,7 +108,7 @@ class Fcm:
     def calculate_each_probability(self, row):
         # list of probabilities for each letter to appear after context
         prob_list = []
-        #alpha = 0.1
+        alpha = 0.1
 
         # sum of the occurences of the row
         for x in row:
@@ -116,10 +116,10 @@ class Fcm:
             for k in row:
                 total += row[k]
             
-            #prob_list.append((row[x] + alpha) / (total + (abs(total) * alpha)))
+            prob_list.append((row[x] + alpha) / (total + (abs(total) * alpha)))
 
             #probability of each letter
-            prob_list.append(row[x] / total)
+            #prob_list.append(row[x] / total)
 
         return prob_list
 
@@ -132,7 +132,7 @@ class Fcm:
 
         return - entropy
 
-    def get_all_probabilities(self):
+    def get_sum_table_values(self):
 
         # sum of all probabilities of the table
         for k in self.filled_table:
@@ -141,7 +141,7 @@ class Fcm:
 
     def calculate_global_entropy(self):
         
-        self.get_all_probabilities()
+        self.get_sum_table_values()
 
         # for each row
         for x in self.filled_table:
@@ -154,9 +154,11 @@ class Fcm:
 
             #print(str(x) + " -> " + str(filled_table[x]) + str(probs))
             #print(str(x) + str(filled_table[x]) + str(probs) + str(entropy_row))
+            #print(entropy_row)
+            #print(sum(self.filled_table[x].values()))
 
             # calculate the entropy of the entire text
-            self.final_entropy += sum(probs)/self.total_counter * entropy_row
+            self.final_entropy += sum(self.filled_table[x].values())/self.total_counter * entropy_row
 
             #print(sum(probs)/len(probs) * entropy_row)
 
@@ -171,7 +173,7 @@ if __name__== "__main__":
     # get the entropy
     fcm.calculate_global_entropy()
 
-    print(fcm.final_entropy)
+    print("Entropy of the text: " + str(fcm.final_entropy))
 
     # example of a row
     #probs = fcm.calculate_each_probability(fcm.filled_table['w h'])
