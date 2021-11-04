@@ -10,18 +10,17 @@ class Fcm:
         self.filename = filename
         self.k = k
         self.alpha = alpha
-        self.times = dict()
 
         self.alphabet = self.get_alphabet()
         self.alphabet_size = len(self.alphabet)
 
         self.is_hash = False
+        self.total_counter = 0
         # fill table with number of occurences
         self.filled_table = self.fill_table(self.init_table())
 
         # final entropy variable
         # all probabilities
-        self.total_counter = 0
 
     def get_alphabet(self):
         with open(self.filename, "r") as f:
@@ -38,7 +37,7 @@ class Fcm:
             table = {}
         else:
             self.is_hash = False
-            table = [[0] * self.alphabet_size for _ in range(self.alphabet_size ** self.k)]
+            table = [[0] * (self.alphabet_size + 1) for _ in range(self.alphabet_size ** self.k)]
         return table
 
     def calculate_table_space(self):
@@ -55,10 +54,6 @@ class Fcm:
                 c = f.read(1)
                 if not c:
                     break
-                if c not in self.times:
-                    self.times[c] = 1
-                else:
-                    self.times[c] += 1
 
                 #table[get_table_index(seq, alphabet)][alphabet.index(c)] += 1 
                 self.inc_table_index(seq, table, c)
@@ -68,8 +63,11 @@ class Fcm:
 
     def inc_table_index(self, seq, table, c):
 
+        self.total_counter += 1     # increment the counter of elements in the data structure
         if not self.is_hash:
-            table[self.get_table_index(seq)][self.alphabet.index(c)] += 1 
+            index = self.get_table_index(seq)
+            table[index][self.alphabet.index(c)] += 1
+            table[index][-1] += 1       # sum of the row 
         else:
             if seq not in table:
                 table[seq] = {c: 1}
@@ -78,6 +76,9 @@ class Fcm:
                     table[seq][c] = 1
                 else:
                     table[seq][c] += 1
+
+            table[seq].setdefault("sum", 0)
+            table[seq]["sum"] += 1
 
     def get_table_index(self, seq):
         index = 0
@@ -90,7 +91,7 @@ class Fcm:
     def get_table_row(self, seq):
 
         if not self.is_hash:
-            return self.filled_table[self.get_table_index(seq)]
+            return self.filled_table[self.get_table_index(seq)][:-1]    # dont return the last index
         else:
             if seq in self.filled_table:
                 temp = []
@@ -103,13 +104,23 @@ class Fcm:
             else:
                 return [0 for _ in range(self.alphabet_size)]
 
+    def get_row_sum(self, seq):
+
+        if self.is_hash:
+            if seq in self.filled_table:
+                return self.filled_table[seq]["sum"]
+            return 0
+        else:
+            return self.filled_table[self.get_table_index(seq)][-1]
+
+
     def calculate_each_probability(self, row):
         # list of probabilities for each letter to appear after context
         prob_list = []
 
         if self.is_hash:
             # sum of the occurences of the row
-            total = sum(row.values()) + self.alphabet_size * self.alpha
+            total = row["sum"] + self.alphabet_size * self.alpha
 
             # some symbols might not be in the hashtable,
             # so we need to iterate the alphabet and add alpha to every symbol
@@ -120,8 +131,8 @@ class Fcm:
                     prob_list.append(self.alpha/total)
             return prob_list
         else:
-            total = sum(row) + self.alphabet_size * self.alpha
-            return [(c + self.alpha)/total for c in row]
+            total = row[-1] + self.alphabet_size * self.alpha
+            return [(c + self.alpha)/total for c in row[:-1]]
 
 
     def calculate_each_entropy(self, prob_list):
@@ -133,21 +144,8 @@ class Fcm:
 
         return - entropy
 
-    def get_sum_table_values(self):
-        
-        if self.is_hash:
-            total = 0
-            # sum of all probabilities of the table
-            for k in self.filled_table:
-                for j in self.filled_table[k]:
-                    total += self.filled_table[k][j]
-            return total
-        else:
-            return sum([sum(x) for x in self.filled_table])
-
     def calculate_global_entropy(self):
-        
-        self.total_counter = self.get_sum_table_values()
+
         final_entropy = 0
         if self.is_hash:
             # for each row
@@ -160,13 +158,13 @@ class Fcm:
                 entropy_row = self.calculate_each_entropy(probs)
 
                 # calculate the entropy of the entire text
-                final_entropy += sum(self.filled_table[x].values()) / self.total_counter * entropy_row
+                final_entropy += self.filled_table[x]["sum"] / self.total_counter * entropy_row
 
         else:
             for row in self.filled_table:
                 probs = self.calculate_each_probability(row)
                 entropy_row = self.calculate_each_entropy(probs)
-                final_entropy += sum(row) / self.total_counter * entropy_row
+                final_entropy += row[-1] / self.total_counter * entropy_row
         return final_entropy
 
 if __name__== "__main__":
@@ -177,6 +175,7 @@ if __name__== "__main__":
                     help='size of the sequence', default=1)
     parser.add_argument('-a', '--alpha', type=float, default=0.01,
                     help='alpha parameter')
+    parser.add_argument('-t', '--threshold', type=float, default=1 , help="threshold to choose the data structure to use")
 
     args = vars(parser.parse_args())
         
