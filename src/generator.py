@@ -47,6 +47,13 @@ if __name__ == "__main__":
     size = args["length"]
     seq = args["seq"]
 
+    if k <= 0:
+        print("k must be a positive integer number")
+        exit(1)
+    if alpha <= 0:
+        print("alpha must be a float number higher than 0")
+        exit(1)
+
     # new fcm model
     fcm = Fcm(filename, k, alpha)
 

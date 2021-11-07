@@ -1,15 +1,17 @@
 import sys
 import math
 import argparse
+import time
 
 class Fcm:
     
-    def __init__(self, filename, k, alpha):
+    def __init__(self, filename, k, alpha, threshold=1):
 
         # initial variables
         self.filename = filename
         self.k = k
         self.alpha = alpha
+        self.threshold = threshold
 
         self.alphabet = self.get_alphabet()
         self.alphabet_size = len(self.alphabet)
@@ -17,8 +19,9 @@ class Fcm:
         self.is_hash = False
         self.total_counter = 0
         # fill table with number of occurences
+        start = time.time()
         self.filled_table = self.fill_table(self.init_table())
-
+        print("Table created in ", str(time.time() - start), "secs...")
         # final entropy variable
         # all probabilities
 
@@ -31,11 +34,12 @@ class Fcm:
     def init_table(self):
 
         space = self.calculate_table_space()
-        threshold = 0.5
-        if space >= threshold:
+        if space >= self.threshold:
             self.is_hash = True
             table = {}
+            print("Creating hash table...")
         else:
+            print("Creating table of size ", space, "MB...")
             self.is_hash = False
             table = [[0] * (self.alphabet_size + 1) for _ in range(self.alphabet_size ** self.k)]
         return table
@@ -55,7 +59,6 @@ class Fcm:
                 if not c:
                     break
 
-                #table[get_table_index(seq, alphabet)][alphabet.index(c)] += 1 
                 self.inc_table_index(seq, table, c)
                 seq = seq[1:] + c
         
@@ -147,6 +150,7 @@ class Fcm:
     def calculate_global_entropy(self):
 
         final_entropy = 0
+        table_total = self.total_counter + self.alpha * self.alphabet_size**(self.k+1)
         if self.is_hash:
             # for each row
             for x in self.filled_table:
@@ -158,13 +162,19 @@ class Fcm:
                 entropy_row = self.calculate_each_entropy(probs)
 
                 # calculate the entropy of the entire text
-                final_entropy += self.filled_table[x]["sum"] / self.total_counter * entropy_row
+                final_entropy += (self.filled_table[x]["sum"] + self.alpha * self.alphabet_size) / table_total * entropy_row
 
+            # sequences that have never appear have probability alpha * alphabet_size
+            # here the entropy of the sequences that are not in the hashtable are added
+            p = self.alpha/(self.alphabet_size*self.alpha)
+            row_entropy = math.log2(p) * (-p) * self.alphabet_size
+            row_prob = (self.alpha * self.alphabet_size / table_total) 
+            final_entropy += row_entropy * row_prob * (self.alphabet_size**self.k - len(self.filled_table))
         else:
             for row in self.filled_table:
                 probs = self.calculate_each_probability(row)
                 entropy_row = self.calculate_each_entropy(probs)
-                final_entropy += row[-1] / self.total_counter * entropy_row
+                final_entropy += (row[-1] + self.alpha * self.alphabet_size) / table_total * entropy_row
         return final_entropy
 
 if __name__== "__main__":
@@ -182,14 +192,17 @@ if __name__== "__main__":
     filename = args["file"]
     k = args["k"]
     alpha = args["alpha"]
+    threshold = args["threshold"]
 
     if k <= 0:
         print("k must be a positive integer number")
+        exit(1)
     if alpha <= 0:
         print("alpha must be a float number higher than 0")
+        exit(1)
 
     # new fcm model
-    fcm = Fcm(filename, k, alpha)
+    fcm = Fcm(filename, k, alpha, threshold)
 
     # get the entropy
     print("Entropy of the text: ", fcm.calculate_global_entropy())
