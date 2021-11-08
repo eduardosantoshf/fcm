@@ -3,8 +3,8 @@
 
 ## Authors
 
-Bruno Bastos
-Eduardo Santos
+Bruno Bastos\
+Eduardo Santos\
 Pedro Bastos
 
 ## How to Run
