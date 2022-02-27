@@ -1,5 +1,5 @@
 
-# TAI Assigment 1
+# TAI First Assigment
 
 The objective of this work was to build a Finite-Context-Model that reads the text from a file and stores the number of the times a character appears after a sequence of characters. It then can use the stored information to generate new text or to calculate the entropy of the text.
 
