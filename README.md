@@ -1,11 +1,13 @@
 
-# TAI
+# TAI Assigment 1
+
+The objective of this work was to build a Finite-Context-Model that reads the text from a file and stores the number of the times a character appears after a sequence of characters. It then can use the stored information to generate new text or to calculate the entropy of the text.
 
 ## Authors
 
-Bruno Bastos\
-Eduardo Santos\
-Pedro Bastos
+* [Bruno Bastos](https://github.com/BrunosBastos) - 93302
+* [Eduardo Santos](https://github.com/eduardosantoshf) - 93107
+* [Pedro bastos](https://github.com/bastos-01) - 93150
 
 ## How to Run
 
