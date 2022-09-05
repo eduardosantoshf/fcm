@@ -6,6 +6,9 @@ The objective of this work was to build a Finite-Context-Model that reads the te
 ## Course
 This project was developed under the [Algorithmic Theory of Information](https://www.ua.pt/en/uc/13643) course of [University of Aveiro](https://www.ua.pt/).
 
+## Grade 
+This project's grade was **18** out of 20.
+
 ## Authors
 
 * [Bruno Bastos](https://github.com/BrunosBastos) - 93302
